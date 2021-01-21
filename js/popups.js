@@ -16,14 +16,28 @@ export const BrowserModPopupsMixin = (C) => class extends C {
     }
 
     _popup_card(ev) {
+        
+        var d;
+        
         if(!lovelace()) return;
         if(!ev.detail || !ev.detail.entityId) return;
         const data = {
             ...lovelace().config.popup_cards,
             ...lovelace().config.views[lovelace().current_view].popup_cards,
         };
-        const d = data[ev.detail.entityId];
-        if(!d) return;
+        d = data[ev.detail.entityId];
+        if(!d) {
+            const data = {
+                ...lovelace().config.popup_cards_domain,
+                ...lovelace().config.views[lovelace().current_view].popup_cards_domain,
+            };
+            d = data[ev.detail.entityId.split(".")[0]];
+            if(!d) return;
+            var friendlyname = hass().states[ev.detail.entityId].attributes.friendly_name;
+            d = JSON.parse(JSON.stringify(d).replace(/###ENTITYID###/g, ev.detail.entityId));
+            d = JSON.parse(JSON.stringify(d).replace(/###ENTITY###/g, ev.detail.entityId.split(".")[1]));
+            d = JSON.parse(JSON.stringify(d).replace(/###ENTITYNAME###/g,friendlyname));
+            }
 
         popUp(
             d.title,
